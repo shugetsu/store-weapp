@@ -79,15 +79,16 @@
       },
       // 点击保存用户地址
       onClickSaveUserAddress () {
-        if (this.formData.name === '') {
+        const rex = /^\s*$/
+        if (rex.test(this.formData.name)) {
           Toast('姓名不能为空')
-        } else if (this.formData.mobile === '') {
+        } else if (rex.test(this.formData.mobile)) {
           Toast('手机号不能为空')
         } else if (!(/^1[3456789]\d{9}$/.test(this.formData.mobile))) {
           Toast('手机号格式不正确')
-        } else if (this.formData.country === '') {
+        } else if (rex.test(this.formData.country)) {
           Toast('请选择所在地区')
-        } else if (this.formData.detail === '') {
+        } else if (rex.test(this.formData.detail)) {
           Toast('详细地址不能为空')
         } else {
           this.isBtnLoading = true
