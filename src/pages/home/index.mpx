@@ -1,0 +1,194 @@
+<template>
+
+  <view class="home tab-bar-page">
+    <view wx:if="{{loading}}" class="skeleton">
+      <van-skeleton row="1" class="swiper-skeleton" loading="{{loading}}"></van-skeleton>
+      <van-skeleton row="1" class="theme-skeleton-title" row-width="30%" loading="{{loading}}"></van-skeleton>
+      <van-skeleton row="2" class="theme-skeleton-top" row-width="50%" loading="{{loading}}"></van-skeleton>
+      <van-skeleton row="1" class="theme-skeleton-bottom" loading="{{loading}}"></van-skeleton>
+    </view>
+
+    <!-- 首页置顶轮播图 start -->
+    <swiper wx:if="{{!loading}}" class="swiper" indicator-dots="true" autoplay="true">
+      <block wx:for="{{HomeBanner.bannerItems}}" wx:key="id">
+        <swiper-item class="swiper-item" data-id="{{item.id}}" bindtap="onClickToProductDetailPage">
+          <van-image width="100%" height="100%" fit="cover" src="{{item.image.url}}"></van-image>
+        </swiper-item>
+      </block>
+    </swiper>
+    <!-- 首页置顶轮播图 end -->
+
+     <!-- 精选专题 start -->
+    <view wx:if="{{!loading}}" class="theme">
+      <view class="main-title">
+        <text>精选专题</text>
+      </view>
+      <view class="theme-container">
+        <block wx:for="{{ThemeList}}" wx:key="id">
+          <view class="theme-item" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="onClickToThemePage">
+            <van-image width="100%" height="100%" fit="cover" src="{{item.topicImage.url}}"></van-image>
+          </view>
+        </block>
+      </view>
+    </view>
+    <!-- 精选专题 end -->
+
+    <!-- 最近新品 start -->
+      <view wx:if="{{!loading}}" class="product">
+        <view class="main-title">
+          <text>最近新品</text>
+        </view>
+        <my-product-list product-list="{{NewProductList}}"></my-product-list>
+      </view>
+    <!-- 最近新品 end -->
+
+    <van-toast id="van-toast" />
+  </view>
+</template>
+
+<script>
+  import { createPage } from '@mpxjs/core'
+  import Toast from '@vant/weapp/dist/toast/toast'
+  import util from '@/utils/util'
+  import bannerModel from '@/store/banner-model'
+  import themeModel from '@/store/theme-model'
+  import productModel from '@/store/product-model'
+
+  createPage({
+    data: {
+      loading: true
+    },
+    onLoad () {
+      util.setTabBarSelected(this, 0)
+      Toast.loading({ message: '加载中...', duration: 0 })
+      Promise.all([this.GetBannerById({ id: 1 }), this.GetThemeList(), this.GetNewProductList({ count: 14 })]).then(res => {
+        Toast.clear()
+        this.loading = false
+      })
+    },
+    // 下拉刷新
+    onPullDownRefresh () {
+      Promise.all([this.GetBannerById({ id: 1 }), this.GetThemeList(), this.GetNewProductList({ count: 14 })]).then(res => {
+        wx.stopPullDownRefresh()
+      })
+    },
+    computed: {
+      ...bannerModel.mapState(['HomeBanner']),
+      ...themeModel.mapState(['ThemeList']),
+      ...productModel.mapState(['NewProductList'])
+    },
+    methods: {
+      ...bannerModel.mapActions(['GetBannerById']),
+      ...themeModel.mapActions(['GetThemeList']),
+      ...productModel.mapActions(['GetNewProductList']),
+      // 点击跳转到商品详情
+      onClickToProductDetailPage (event) {
+        const id = util.getDataSet(event, 'id')
+        wx.navigateTo({ url: `/pages/product/index?id=${id}` })
+      },
+      // 点击跳转到专题页面
+      onClickToThemePage (event) {
+        const id = util.getDataSet(event, 'id')
+        const name = util.getDataSet(event, 'name')
+        wx.navigateTo({ url: `/pages/theme/index?id=${id}&name=${name}` })
+      }
+    }
+  })
+</script>
+
+<style lang="less">
+.home {
+  .skeleton {
+    height: calc(100vh - 100px);
+    overflow: hidden;
+    .swiper-skeleton, .theme-skeleton-top, .theme-skeleton-bottom {
+      .van-skeleton { padding: 0 !important; }
+    }
+
+    .swiper-skeleton {
+      .van-skeleton__row { height: 400px; }
+    }
+
+    .theme-skeleton-title {
+      .van-skeleton { padding: 42px 0 !important; }
+      .van-skeleton__content {
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
+
+  .theme-skeleton-bottom .van-skeleton__row, .theme-skeleton-top .van-skeleton__row { height: 375px; }
+
+  .theme-skeleton-top {
+    .van-skeleton__content { display: flex; }
+    .van-skeleton__row + .van-skeleton__row { margin-top: 0 !important; }
+    .van-skeleton__row:nth-child(1) {
+      border-right: 2px solid #fff;
+    }
+    .van-skeleton__row:nth-child(2) {
+      border-left: 2px solid #fff;
+    }
+  }
+
+  .theme-skeleton-bottom {
+    .van-skeleton__row {
+      border-top: 4px solid #fff;
+    }
+  }
+
+  .swiper {
+    height: 400px;
+  }
+
+  .main-title {
+    line-height: 100px;
+    height: 100px;
+    color: #ff6a3c;
+    text-align: center;
+    font-size: 32px;
+    background-color: #fff;
+  }
+
+  .theme {
+    .theme-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      .theme-item {
+        height: 375px;
+        width: 50%;
+        position: relative;
+        box-sizing: border-box;
+      }
+      .theme-item:nth-child(1) {
+        border-right: 2px solid #fff;
+      }
+      .theme-item:nth-child(2) {
+        border-left: 2px solid #fff;
+      }
+      .theme-item:last-child {
+        width: 100%;
+        border-top: 4px solid #fff;
+      }
+    }
+  }
+}
+</style>
+
+<script type="application/json">
+  {
+    "usingComponents": {
+      "my-product-list": "@/components/my-product-list/index",
+      "van-loading": "@vant/weapp/dist/loading/index",
+      "van-divider": "@vant/weapp/dist/divider/index",
+      "van-image": "@vant/weapp/dist/image/index",
+      "van-grid": "@vant/weapp/dist/grid/index",
+      "van-grid-item": "@vant/weapp/dist/grid-item/index",
+      "van-skeleton": "@vant/weapp/dist/skeleton/index",
+      "van-toast": "@vant/weapp/dist/toast/index"
+    },
+    "navigationBarTitleText": "小凉零食",
+    "enablePullDownRefresh": true
+  }
+</script>

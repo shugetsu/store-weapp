@@ -1,0 +1,71 @@
+<template>
+  <view class="my-product-list">
+    <block wx:for="{{productList}}" wx:key="id">
+      <view class="my-product-item" data-id="{{item.id}}" bindtap="onClickToProductDetailPage">
+        <van-image width="80%" height="220rpx" fit="cover" src="{{item.mainImgUrl}}"></van-image>
+        <view class="my-product-item-bottom">
+          <text class="name">{{item.name}}</text>
+          <view class="price">￥{{item.price}}</view>
+        </view>
+      </view>
+    </block>
+  </view>
+</template>
+
+<script>
+  import { createComponent } from '@mpxjs/core'
+  import util from '@/utils/util'
+
+  createComponent({
+    properties: {
+      productList: { type: Array, value: [] }
+    },
+    data: {},
+    methods: {
+      // 点击跳转到商品详情页面
+      onClickToProductDetailPage (event) {
+        const id = util.getDataSet(event, 'id')
+        wx.navigateTo({ url: `/pages/product/index?id=${id}` })
+      }
+    }
+  })
+</script>
+
+<style lang="less">
+.my-product-list {
+  margin: 0 20px 20px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #fff;
+  justify-content: space-between;
+  .my-product-item {
+    min-height: 300px;
+    width: calc(50% - 5px);
+    border-radius: 10px;
+    margin-right: 0;
+    margin-bottom: 10px;
+    background-color: #F5F6F5;
+    text-align: center;
+    .my-product-item-bottom {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+      .name {
+        font-size: 28px;
+      }
+      .price {
+        font-size: 24px;
+      }
+    }
+  }
+}
+</style>
+
+<script type="application/json">
+  {
+    "component": true,
+    "usingComponents": {
+      "van-image": "@vant/weapp/dist/image/index"
+    }
+  }
+</script>

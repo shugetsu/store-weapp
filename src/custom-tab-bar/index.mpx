@@ -1,0 +1,74 @@
+<template>
+  <van-tabbar border="{{false}}" class="custom-tab-bar" active="{{selected}}" inactive-color="#989898" active-color="#AB956D" bind:change="tabbarChange">
+    <van-tabbar-item wx:for="{{tabbar}}" wx:key="path" info="{{index === 2 ? CartProductList.length > 0 ? CartProductList.length : ''  : '' }}">
+      <image slot="icon" src="{{item.iconPath}}" mode="aspectFit"/>
+      <image slot="icon-active" src="{{item.selectedIconPath}}" mode="aspectFit"/>
+      {{item.text}}
+    </van-tabbar-item>
+  </van-tabbar>
+</template>
+
+<script>
+  import { createComponent } from '@mpxjs/core'
+  import cart from '@/store/cart'
+
+  createComponent({
+    data: {
+      selected: 0,
+      tabbar: [
+        {
+          path: '/pages/home/index',
+          text: '首页',
+          iconPath: require('@/assets/toolbar/icon_home.png'),
+          selectedIconPath: require('@/assets/toolbar/icon_home_active.png')
+        },
+        {
+          path: '/pages/category/index',
+          text: '分类',
+          iconPath: require('@/assets/toolbar/icon_classify.png'),
+          selectedIconPath: require('@/assets/toolbar/icon_classify_active.png')
+        },
+        {
+          path: '/pages/cart/index',
+          text: '购物车',
+          iconPath: require('@/assets/toolbar/icon_shop_cart.png'),
+          selectedIconPath: require('@/assets/toolbar/icon_shop_cart_active.png')
+        },
+        {
+          path: '/pages/my/index',
+          text: '我的',
+          iconPath: require('@/assets/toolbar/icon_info.png'),
+          selectedIconPath: require('@/assets/toolbar/icon_info_active.png')
+        }
+      ]
+    },
+    computed: {
+      ...cart.mapState(['CartProductList'])
+    },
+    methods: {
+      tabbarChange (event) {
+        if (this.selected === event.detail) return
+        wx.switchTab({ url: this.tabbar[event.detail].path })
+      }
+    }
+  })
+</script>
+
+<style lang="less">
+  .custom-tab-bar {
+    image {
+      width: 50px;
+      height: 50px;
+    }
+  }
+</style>
+
+<script type="application/json">
+  {
+    "component": true,
+    "usingComponents": {
+      "van-tabbar": "@vant/weapp/dist/tabbar/index",
+      "van-tabbar-item": "@vant/weapp/dist/tabbar-item/index"
+    }
+  }
+</script>

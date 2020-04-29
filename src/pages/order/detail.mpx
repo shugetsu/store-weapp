@@ -1,0 +1,164 @@
+<template>
+  <view class="order">
+    <!-- 下单状态 start -->
+    <view class="date">
+      <view class="left">
+        <view>
+          <text class="field">下单时间：</text>
+          <text>{{OrderDetail.createdAt}}</text>
+        </view>
+        <view>
+          <text class="field">订单编号：</text>
+          <text>{{OrderDetail.orderNo}}</text>
+        </view>
+      </view>
+      <view class="status" style="color: {{OrderDetail.statusTextColor}}">{{OrderDetail.statusText}}</view>
+    </view>
+     <!-- 下单状态 end -->
+
+    <!-- 头部 start -->
+    <view class="head">
+      <view class="edit-address">
+        <view class="address">
+          <view class="item">
+            <van-icon class="icon" name="user-o" size="34rpx" color="#ff6a3c" />
+            <text class="text">{{OrderDetail.snapAddress.name}}</text>
+          </view>
+          <view class="item">
+            <van-icon class="icon" name="phone-o" size="34rpx" color="#ff6a3c" />
+            <text class="text">{{OrderDetail.snapAddress.mobile}}</text>
+          </view>
+          <view class="item">
+            <van-icon class="icon" name="location-o" size="34rpx" color="#ff6a3c" />
+            <text class="text">{{OrderDetail.snapAddress.completeAddress}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 头部 end -->
+
+    <!-- 商品列表 start -->
+    <view class="product">
+      <view class="item" wx:for="{{OrderDetail.snapItems}}" wx:key="id">
+        <van-card custom-class="custom-card" num="{{item.count}}" price="{{item.price}}" desc="{{item.summary || ''}}" title="{{item.name}}" thumb="{{item.mainImgUrl}}"></van-card>
+      </view>
+    </view>
+    <!-- 商品列表 end -->
+
+    <!-- 底部提交栏 start -->
+    <van-submit-bar wx:if="{{OrderDetail.status === 1}}" price="{{OrderDetail.totalPrice * 100 }}" label="付款合计：" custom-class="custom-submit-bar" button-text="去付款" bind:submit="onClickPayment"></van-submit-bar>
+    <van-submit-bar wx:else price="{{OrderDetail.totalPrice * 100 }}" label="实付：" custom-class="no-show-btn"></van-submit-bar>
+    <!-- 底部提交栏 end -->
+    <van-dialog id="van-dialog" />
+  </view>
+</template>
+
+<script>
+  import { createPage } from '@mpxjs/core'
+  import util from '@/utils/util'
+  import orderModel from '@/store/order-model'
+  import Dialog from '@vant/weapp/dist/dialog/dialog'
+
+  createPage({
+    data: {
+
+    },
+    onLoad ({ id }) {
+      // Toast.loading({ message: '加载中...', duration: 0  })
+    },
+    computed: {
+      ...orderModel.mapState(['OrderDetail'])
+    },
+    methods: {
+      onClickPayment () {
+        Dialog.confirm({
+          title: '支付提示',
+          message: '本产品仅用于演示，支付系统已屏蔽',
+          showCancelButton: false
+        }).then(() => {
+          wx.switchTab({ url: '/pages/my/index' })
+        }).catch(() => {})
+      }
+    }
+  })
+</script>
+
+<style lang="less">
+.order {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 100px;
+  min-height: calc(100vh - 100px);
+  background: #efefef;
+  .date {
+    display: flex;
+    background: #fff;
+    line-height: 50px;
+    padding: 20px 30px;
+    border-bottom: 1px solid #eee;
+    .field { color: #909399; }
+    .left {
+      flex: 1;
+      font-size: 28px;
+    }
+    .status {
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+    }
+  }
+  .head {
+    background-color: #fff;
+    padding: 20px 30px;
+    margin-bottom: 20px;
+  }
+  .edit-address {
+    display: flex;
+    .address {
+      font-size: 28px;
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      .icon { float: left; height: 42px; }
+      .item:nth-child(3) { width: 100%; margin-top: 10px; }
+      .text { margin-left: 10px; vertical-align: top; }
+    }
+  }
+
+  .add-address {
+    text-align: center;
+  }
+
+  .product {
+    background: #fff;
+    .custom-card { background: #fff; }
+    .item {
+      overflow: hidden; box-sizing: border-box; height: 208px;
+    }
+    .item + .item {
+      border-top: 1px solid #f1f4f8;
+    }
+  }
+
+  .custom-submit-bar {
+    .van-submit-bar__text { text-align: left; }
+    .primary { color: #1989fa; }
+  }
+  .no-show-btn {
+    .van-submit-bar__button { display: none; }
+  }
+}
+</style>
+
+<script type="application/json">
+  {
+    "usingComponents": {
+      "van-icon": "@vant/weapp/dist/icon/index",
+      "van-submit-bar": "@vant/weapp/dist/submit-bar/index",
+      "van-card": "@vant/weapp/dist/card/index",
+      "van-dialog": "@vant/weapp/dist/dialog/index"
+    },
+    "navigationBarTitleText": "订单详情"
+  }
+</script>

@@ -1,0 +1,113 @@
+<script>
+  import mpx from '@mpxjs/core'
+  import apiProxy from '@mpxjs/api-proxy'
+  import mpxFetch from '@mpxjs/fetch'
+  import wxService from '@/utils/wxService'
+  import tokenModel from '@/store/token-model'
+
+  mpx.use(apiProxy, { usePromise: true })
+  mpx.use(mpxFetch)
+
+// 请求拦截
+mpx.xfetch.interceptors.request.use(function (config) {
+  return config
+})
+
+// 响应拦截
+mpx.xfetch.interceptors.response.use(function (response) {
+  // console.log('响应拦截', response)
+  if (response.data) {
+    const code = response.data.code
+    if (code === 10002 || code === 10008 || code === 10009 || code === 10010) {
+      const pages = getCurrentPages()
+      const returnUrl = pages[pages.length - 1].route
+      wx.redirectTo({ url: `/pages/login/index?returnUrl=/${returnUrl}` })
+    }
+  }
+  return response
+})
+
+
+// app.js
+App({
+  ...tokenModel.mapActions(['GetToken']),
+  ...tokenModel.mapMutations(['SET_USER_INFO']),
+  async onLaunch () {
+    const token = wx.getStorageSync('Token')
+    if (!token) {
+      const { code } = await wxService.login()
+      this.GetToken({ code })
+    }
+    // 授权
+    const { authSetting } = await wxService.getSetting()
+    if (authSetting['scope.userInfo']) {
+      const result = await wxService.getUserInfo()
+      this.SET_USER_INFO(result.userInfo)
+    } else {
+      wx.navigateTo({ url: '/pages/login/index' })
+    }
+  }
+})
+</script>
+
+<style lang="less">
+page {
+  height: 100%;
+}
+.tab-bar-page {
+  height: calc(100vh - 92px);
+  position: relative;
+  overflow: auto;
+  box-sizing: border-box;
+}
+</style>
+
+<script type="application/json">
+  {
+    "pages": [
+      "./pages/home/index",
+      "./pages/category/index",
+      "./pages/cart/index",
+      "./pages/my/index",
+      "./pages/theme/index",
+      "./pages/product/index",
+      "./pages/address/edit",
+      "./pages/address/add",
+      "./pages/order/index",
+      "./pages/order/detail",
+      "./pages/login/index"
+    ],
+    "window": {
+      "navigationBarTitleText": "",
+      "navigationBarTextStyle": "black",
+      "navigationBarBackgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
+      "backgroundTextStyle": "dark"
+    },
+    "tabBar": {
+      "custom": true,
+      "color": "#000000",
+      "selectedColor": "#000000",
+      "backgroundColor": "#000000",
+      "list": [
+        {
+        "pagePath": "pages/home/index",
+        "text": "首页"
+        },
+        {
+        "pagePath": "pages/category/index",
+        "text": "分类"
+        },
+        {
+        "pagePath": "pages/cart/index",
+        "text": "购物车"
+        },
+        {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+        }
+      ]
+    },
+    "usingComponents": {}
+  }
+</script>

@@ -1,0 +1,197 @@
+<template>
+  <view class="cart tab-bar-page">
+
+    <!-- 商品列表 start -->
+    <view class="product-list" wx:if="{{CartProductList.length > 0}}">
+      <view class="swipe-cell" wx:for="{{CartProductList}}" wx:key="id">
+        <van-swipe-cell right-width="{{ 65 }}" id="swipe-cell-{{index}}" data-index="{{index}}" data-id="{{item.product.id}}" async-close bind:click="onClickDeleteProduct">
+          <view class="product-item">
+            <view class="checkbox">
+              <van-checkbox value="{{item.isSelected}}" checked-color="#ff6a3c" data-index="{{index}}" bind:change="onChangeItemSelected"></van-checkbox>
+            </view>
+            <van-card custom-class="card" class="card" num="{{item.count}}" price="{{item.product.price}}" desc="{{item.summary || ''}}" title="{{item.product.name}}" thumb="{{item.product.mainImgUrl}}" thumb-link="/pages/product/index?id={{item.product.id}}">
+              <view slot="footer">
+                <van-stepper value="{{item.count}}" max="{{item.product.stock}}" data-index="{{index}}" bind:change="onChangeItemCount" />
+              </view>
+            </van-card>
+          </view>
+          <view slot="right" class="delete-btn">删除</view>
+        </van-swipe-cell>
+      </view>
+    </view>
+    <!-- 商品列表 end -->
+
+    <!-- 底部提交栏 start -->
+    <van-submit-bar wx:if="{{CartProductList.length > 0}}" custom-class="submit-bar" price="{{totalPrice}}" disabled="{{isDisableSettlement}}" button-text="去结算" bind:submit="onClickToOrderPage">
+      <van-checkbox value="{{isAllSelected}}" checked-color="#ff6a3c" bind:change="onChangeAllSelected">全选</van-checkbox>
+    </van-submit-bar>
+    <!-- 底部提交栏 end -->
+
+
+    <!-- 暂无商品暂位块 start -->
+    <view class="for" wx:if="{{CartProductList.length === 0}}">
+      <van-image width="200rpx" height="200rpx" fit="cover" src="{{cartNullImage}}"></van-image>
+      <view class="tip">购物车空空如也，去逛逛吧~</view>
+    </view>
+    <!-- 暂无商品暂位块 end -->
+
+    <van-dialog id="van-dialog" />
+  </view>
+</template>
+
+<script>
+  import { createPage } from '@mpxjs/core'
+  import util from '@/utils/util'
+  import Dialog from '@vant/weapp/dist/dialog/dialog'
+  import cart from '@/store/cart'
+
+  createPage({
+    data: {
+      isAllSelected: false,
+      cartNullImage: require('@/assets/images/cart-null.png')
+    },
+    onLoad () {
+      util.setTabBarSelected(this, 2)
+      this.setIsAllSelected()
+    },
+    computed: {
+      ...cart.mapState(['CartProductList']),
+      totalPrice () {
+        let total = 0
+        this.CartProductList.forEach(item => {
+          if (item.isSelected) {
+            total += (item.product.price * 100) * item.count
+          }
+        })
+        return total
+      },
+      isDisableSettlement () {
+        let isDisable = true
+        for (let i = 0; i < this.CartProductList.length; i++) {
+          if (this.CartProductList[i].isSelected) {
+            isDisable = false
+          }
+        }
+        return isDisable
+      }
+    },
+    watch: {
+      CartProductList (newV, oldV) {
+        this.setIsAllSelected()
+      }
+    },
+    methods: {
+      ...cart.mapMutations(['DELETE_CART_PRODUCT', 'SET_CART_PRODUCT_COUNT', 'SET_CART_PRODUCT_SELECTED', 'SET_CART_PRODUCT_ALL_SELECTED', 'SET_ORDER_PRODUCT_LIST']),
+      // 商品项数量改变
+      onChangeItemCount (event) {
+        const index = util.getDataSet(event, 'index')
+        const count = event.detail
+        this.SET_CART_PRODUCT_COUNT({ index, count })
+      },
+      // 点击删除商品
+      onClickDeleteProduct (event) {
+        const id = util.getDataSet(event, 'id')
+        const index = util.getDataSet(event, 'index')
+        const instance = this.selectComponent('#swipe-cell-' + index)
+        if (event.detail === 'right') {
+          Dialog.confirm({
+            message: '确认要删除该商品吗？'
+          }).then(() => {
+            this.DELETE_CART_PRODUCT(id)
+            instance.close()
+          }).catch(() => {
+            instance.close()
+          })
+        }
+      }
+    },
+    setIsAllSelected () {
+      let isSelected = true
+      for (let i = 0; i < this.CartProductList.length; i++) {
+        if (!this.CartProductList[i].isSelected) {
+          isSelected = false
+          break
+        }
+      }
+      this.isAllSelected = isSelected
+    },
+    // 全选
+    onChangeAllSelected (event) {
+      this.SET_CART_PRODUCT_ALL_SELECTED(event.detail)
+    },
+    // 商品项单选
+    onChangeItemSelected (event) {
+      const index = util.getDataSet(event, 'index')
+      const isSelected = event.detail
+      this.SET_CART_PRODUCT_SELECTED({ index, isSelected })
+    },
+    // 点击跳转到订单页面
+    onClickToOrderPage (event) {
+      const orderProductList = this.CartProductList.filter(item => item.isSelected)
+      this.SET_ORDER_PRODUCT_LIST(orderProductList)
+      wx.navigateTo({ url: `/pages/order/index` })
+    }
+  })
+</script>
+
+<style lang="less">
+.cart {
+  background: #efefef;
+  .product-list {
+    padding-bottom: 100px;
+    .swipe-cell {
+      box-sizing: border-box;
+      background-color: #fff;
+      height: 268px;
+      overflow: hidden;
+      .delete-btn {
+        width: 130px;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        background: #ee0a24;
+      }
+
+      .product-item {
+        display: flex;
+        align-items: center;
+        .checkbox { height: 268px; padding-left: 30px; display: flex; align-items: center; }
+        .card { flex: 1; background: #fff !important; }
+      }
+    }
+    .swipe-cell + .swipe-cell {
+      border-top: 1px solid #f1f4f8;
+    }
+  }
+
+  .for {
+    display: flex;
+    height: calc(100vh - 100px);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    .tip { margin-top: 30px; }
+  }
+
+  .submit-bar {
+    bottom: 100px !important;
+  }
+}
+</style>
+
+<script type="application/json">
+  {
+    "usingComponents": {
+      "van-card": "@vant/weapp/dist/card/index",
+      "van-swipe-cell": "@vant/weapp/dist/swipe-cell/index",
+      "van-stepper": "@vant/weapp/dist/stepper/index",
+      "van-dialog": "@vant/weapp/dist/dialog/index",
+      "van-checkbox": "@vant/weapp/dist/checkbox/index",
+      "van-submit-bar": "@vant/weapp/dist/submit-bar/index",
+      "van-image": "@vant/weapp/dist/image/index"
+    },
+    "navigationBarTitleText": "购物车"
+  }
+</script>

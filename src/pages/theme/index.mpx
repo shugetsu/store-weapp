@@ -1,0 +1,87 @@
+<template>
+  <view class="theme">
+    <view wx:if="{{loading}}" class="skeleton">
+      <van-skeleton row="1" class="theme-head-skeleton" loading="{{loading}}"></van-skeleton>
+      <van-skeleton row="10" row-width="calc(355rpx - 5rpx)" class="theme-main-skeleton" loading="{{loading}}"></van-skeleton>
+    </view>
+
+    <view wx:if="{{!loading}}" class="theme-head">
+      <van-image width="100%" height="100%" fit="cover" src="{{ThemeDetail.headImage ? ThemeDetail.headImage.url : ''}}"></van-image>
+    </view>
+    <view wx:if="{{!loading}}" class="theme-main">
+      <my-product-list product-list="{{ThemeDetail.products}}"></my-product-list>
+    </view>
+  </view>
+
+  <van-toast id="van-toast" />
+</template>
+
+<script>
+  import { createPage } from '@mpxjs/core'
+  import Toast from '@vant/weapp/dist/toast/toast'
+  import themeModel from '@/store/theme-model'
+
+  createPage({
+    data: {
+      loading: true
+    },
+    onLoad ({ id, name }) {
+      wx.setNavigationBarTitle({ title: name })
+      this.loading = true
+      Toast.loading({ message: '加载中...', duration: 0 })
+      this.GetThemeDetail({ id }).then(res => {
+        Toast.clear()
+        this.loading = false
+      })
+    },
+    computed: {
+      ...themeModel.mapState(['ThemeDetail'])
+    },
+    methods: {
+      ...themeModel.mapActions(['GetThemeDetail'])
+    }
+  })
+</script>
+
+<style lang="less">
+.theme {
+  .skeleton {
+    height: 100vh;
+    overflow: hidden;
+    .theme-head-skeleton {
+      .van-skeleton { padding: 0 0 30px 0 !important; }
+      .van-skeleton__row { height: 400px; }
+    }
+    .theme-main-skeleton {
+      .van-skeleton { padding: 0 20px 20px 20px !important; }
+      .van-skeleton__content {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      .van-skeleton__row {
+        min-height: 300px;
+        border-radius: 10px;
+        margin-top: 0 !important;
+        margin-bottom: 10px;
+      }
+    }
+  }
+
+  .theme-head {
+    height: 400px;
+    margin-bottom: 30px;
+  }
+}
+</style>
+
+<script type="application/json">
+  {
+    "usingComponents": {
+      "van-image": "@vant/weapp/dist/image/index",
+      "my-product-list": "@/components/my-product-list/index",
+      "van-skeleton": "@vant/weapp/dist/skeleton/index",
+      "van-toast": "@vant/weapp/dist/toast/index"
+    }
+  }
+</script>

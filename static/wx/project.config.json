@@ -1,0 +1,15 @@
+{
+  "compileType": "miniprogram",
+  "setting": {
+    "newFeature": true,
+    "urlCheck": false,
+    "es6": false,
+    "postcss": true,
+    "minified": false,
+    "autoAudits": false
+  },
+  "appid": "wx42f24890c7b0928b",
+  "projectname": "store-weapp",
+  "description": "A mpx project",
+  "condition": {}
+}

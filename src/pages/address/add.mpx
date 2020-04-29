@@ -1,0 +1,117 @@
+<template>
+  <view class="address">
+    <van-field label="姓名" placeholder="请输入姓名" wx:model-value-path="[]" wx:model="{{formData.name}}" />
+    <van-field label="手机号" placeholder="请输入手机号" wx:model-value-path="[]" wx:model="{{formData.mobile}}" />
+    <van-cell title="所在地区" title-width="180rpx" value="{{region}}" value-class="cell-value" is-link bind:click="onClickShowArea" />
+    <van-field label="详细地址" placeholder="请输入详细地址" wx:model-value-path="[]" wx:model="{{formData.detail}}" />
+
+    <view class="save-btn">
+      <van-button round type="primary" size="normal" loading="{{isLoading}}" custom-class="custom-button" block bind:click="onClickAddUserAddress">添加</van-button>
+    </view>
+
+    <van-popup show="{{isShowArea}}" bind:close="onClickRegionCancel" position="bottom">
+      <van-area area-list="{{areaList}}" bind:confirm="onClickRegionConfirm" bind:cancel="onClickRegionCancel" title="所在地区" />
+    </van-popup>
+
+    <van-toast id="van-toast" />
+  </view>
+</template>
+
+<script>
+  import { createPage } from '@mpxjs/core'
+  import util from '@/utils/util'
+  import area from '@/utils/area'
+  import Toast from '@vant/weapp/dist/toast/toast'
+  import userAddressModel from '@/store/user_address-model'
+
+  createPage({
+    data: {
+      areaList: area,
+      isShowArea: false,
+      isLoading: false,
+      region: '请选择',
+      formData: {
+        name: '',
+        mobile: '',
+        province: '',
+        city: '',
+        country: '',
+        detail: ''
+      }
+    },
+    methods: {
+      ...userAddressModel.mapActions(['GetUserAddress', 'AddUserAddress']),
+      // 点击显示地区选择器
+      onClickShowArea () {
+        this.isShowArea = !this.isShowArea
+      },
+      // 点击地区取消
+      onClickRegionCancel () {
+        this.isShowArea = false
+      },
+      // 点击地区确定
+      onClickRegionConfirm (event) {
+        const values = event.detail.values
+        this.formData.province = values[0].code
+        this.formData.city = values[1].code
+        this.formData.country = values[2].code
+        this.region = util.getRegionByCode(this.formData.province, this.formData.city, this.formData.country, '/')
+        this.isShowArea = false
+      },
+      // 点击添加用户地址
+      onClickAddUserAddress () {
+        if (this.formData.name === '') {
+          Toast('姓名不能为空')
+        } else if (this.formData.mobile === '') {
+          Toast('手机号不能为空')
+        } else if (!(/^1[3456789]\d{9}$/.test(this.formData.mobile))) {
+          Toast('手机号格式不正确')
+        } else if (this.formData.country === '') {
+          Toast('请选择所在地区')
+        } else if (this.formData.detail === '') {
+          Toast('详细地址不能为空')
+        } else {
+          this.isLoading = true
+          this.AddUserAddress(this.formData).then(res => {
+            if (res.data.code === 200) {
+              Toast({
+                type: 'success',
+                message: '添加成功',
+                onClose: () => {
+                  this.GetUserAddress().then(res => {
+                    wx.navigateBack({ delta: 1 })
+                  })
+                }
+              })
+            } else {
+              Toast.fail(res.data.msg)
+            }
+            this.isLoading = false
+          })
+        }
+      }
+    }
+  })
+</script>
+
+<style lang="less">
+.address {
+  .cell-value { text-align: left !important; }
+  .save-btn { padding: 0 30px; }
+  .custom-button { margin-top: 20px; }
+}
+</style>
+
+<script type="application/json">
+  {
+    "usingComponents": {
+      "van-field": "@vant/weapp/dist/field/index",
+      "van-cell": "@vant/weapp/dist/cell/index",
+      "van-button": "@vant/weapp/dist/button/index",
+      "van-area": "@vant/weapp/dist/area/index",
+      "van-popup": "@vant/weapp/dist/popup/index",
+      "van-toast": "@vant/weapp/dist/toast/index"
+    },
+    "navigationBarTitleText": "添加地址"
+  }
+</script>

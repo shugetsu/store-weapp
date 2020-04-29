@@ -1,0 +1,191 @@
+<template>
+  <view class="category tab-bar-page">
+    <!-- 侧边栏 start -->
+    <view wx:if="{{loading}}" class="skeleton">
+      <van-skeleton row="11" row-width="150rpx" class="vertical-nav-skeleton" loading="{{loading}}"></van-skeleton>
+      <van-skeleton row="5" row-width="560rpx" class="vertical-main-skeleton" loading="{{loading}}"></van-skeleton>
+    </view>
+
+    <scroll-view wx:if="{{!loading}}" class="vertical-nav" scroll-y scroll-with-animation scroll-top="{{verticalNavTop}}">
+      <view class="vertical-nav-item {{index == activeTapIndex ? 'active':''}}" wx:for="{{ProductCtegoryList}}" wx:key="id" bindtap='onClickNavItem' data-index="{{index}}">
+        {{item.name}}
+      </view>
+    </scroll-view>
+    <!-- 侧边栏 end -->
+
+    <!-- 标签项列表 start -->
+    <scroll-view wx:if="{{!loading}}" id="vertical-main" scroll-y scroll-with-animation scroll-into-view="tab-{{activeTabIndex}}" bindscroll="onBindVerticalMainscroll">
+      <view class="vertical-item" wx:for="{{ProductCtegoryList}}" wx:key="id" id="tab-{{index}}">
+        <view class="vertical-head-container">
+            <van-image width="100%" height="200rpx" fit="cover" src="{{item.topicImage.url}}"></van-image>
+        </view>
+        <view class="vertical-main-container">
+          <view class="vertical-main-item" wx:for="{{item.products}}" wx:for-item="productItem" wx:key="id" data-id="{{productItem.id}}" bindtap="onClickToProductPage">
+            <van-image width="120rpx" height="120rpx" fit="cover" src="{{productItem.mainImgUrl}}"></van-image>
+            <view class="name">{{productItem.name}}</view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+    <!-- 标签项列表 end -->
+
+    <van-toast id="van-toast" />
+  </view>
+</template>
+
+<script>
+  import { createPage } from '@mpxjs/core'
+  import Toast from '@vant/weapp/dist/toast/toast'
+  import util from '@/utils/util'
+  import categoryModel from '@/store/category-model'
+
+  createPage({
+    data: {
+      activeTapIndex: 0,
+      activeTabIndex: 0,
+      verticalNavTop: 0,
+      tabList: [],
+      loading: true
+    },
+    onLoad () {
+      util.setTabBarSelected(this, 1)
+      Toast.loading({ message: '加载中...', duration: 0 })
+      this.GetProductCtegoryList().then(rs => {
+        Toast.clear()
+        this.loading = false
+        setTimeout(() => {
+          this.initTabList()
+        })
+      })
+    },
+    computed: {
+      ...categoryModel.mapState(['ProductCtegoryList'])
+    },
+    methods: {
+      ...categoryModel.mapActions(['GetProductCtegoryList']),
+      // 点击跳转到商品页面
+      onClickToProductPage (event) {
+        const id = util.getDataSet(event, 'id')
+        wx.navigateTo({ url: `/pages/product/index?id=${id}` })
+      },
+      // 点击NavItem
+      onClickNavItem (event) {
+        this.activeTapIndex = util.getDataSet(event, 'index')
+        this.activeTabIndex = util.getDataSet(event, 'index')
+        this.VerticalNavTop = (util.getDataSet(event, 'index') - 1) * 50
+      },
+      // 初始化tab列表
+      initTabList () {
+        let tabHeight = 0
+        for (let i = 0; i < this.ProductCtegoryList.length; i++) {
+          let view = wx.createSelectorQuery().select('#tab-' + i)
+          view.fields({ size: true }, data => {
+            const top = tabHeight
+            tabHeight += data.height
+            const bottom = tabHeight
+            this.tabList.push({ top, bottom })
+          }).exec()
+        }
+      },
+      // scroll滚动监听
+      onBindVerticalMainscroll (event) {
+        let scrollTop = event.detail.scrollTop - 10
+        for (let i = 0; i < this.tabList.length; i++) {
+          if (scrollTop > this.tabList[i].top && scrollTop < this.tabList[i].bottom) {
+            this.VerticalNavTop = (i - 1) * 50
+            this.activeTapIndex = i
+            break
+          }
+        }
+      }
+    }
+  })
+</script>
+
+<style lang="less">
+.category {
+  display: flex;
+
+  .skeleton {
+    display: flex;
+    height: calc(100vh - 100px);
+    overflow: hidden;
+    box-sizing: border-box;
+    .vertical-nav-skeleton {
+      .van-skeleton { padding: 0 !important; }
+      .van-skeleton__row { height: 100px; border-radius: 8px; }
+    }
+    .vertical-main-skeleton {
+      flex: 1;
+      .van-skeleton { padding: 20px !important; }
+      .van-skeleton__row { height: calc(50vh - 20px); }
+    }
+  }
+
+  #vertical-main {
+    padding: 20px;
+    background: #efefef;
+    flex: 1;
+    .vertical-item {
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      .vertical-head-container {
+        margin-bottom: 10px;
+      }
+      .vertical-main-container {
+        font-size: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        .vertical-main-item { margin-left: 3.33%; width: 30%; text-align: center; }
+        .name { margin: 10px 0 20px 0; }
+      }
+    }
+    .vertical-item + .vertical-item { margin-top: 20px; }
+  }
+
+  .vertical-nav {
+    width: 150px;
+    height: 100%;
+    background-color: #fff;
+    .vertical-nav-item {
+      height: 100px;
+      line-height: 100px;
+      font-size: 28px;
+      color: #666;
+      text-align: center;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .active {
+      color: #ff6a3c;
+      position: relative;
+      background: #efefef;
+    }
+    .active:after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: #ff6a3c;
+    }
+  }
+}
+
+</style>
+
+<script type="application/json">
+  {
+    "usingComponents": {
+      "van-sidebar": "@vant/weapp/dist/sidebar/index",
+      "van-sidebar-item": "@vant/weapp/dist/sidebar-item/index",
+      "van-image": "@vant/weapp/dist/image/index",
+      "van-skeleton": "@vant/weapp/dist/skeleton/index",
+      "van-toast": "@vant/weapp/dist/toast/index"
+    },
+    "navigationBarTitleText": "分类",
+    "disableScroll": true
+  }
+</script>
