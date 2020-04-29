@@ -55,7 +55,7 @@
   createPage({
     data: {},
     onLoad () {
-      Toast.loading({ message: '加载中...', duration: 0  })
+      Toast.loading({ message: '加载中...', duration: 0 })
       this.GetUserAddress().then(res => {
         Toast.clear()
       })

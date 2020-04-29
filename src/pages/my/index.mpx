@@ -58,7 +58,7 @@
     data: {},
     onLoad () {
       util.setTabBarSelected(this, 3)
-      Toast.loading({ message: '加载中...', duration: 0  })
+      Toast.loading({ message: '加载中...', duration: 0 })
       this.RESET_ORDER_LIST()
       Promise.all([this.GetUserAddress(), this.GetOrderList()]).then(res => {
         Toast.clear()
@@ -104,7 +104,7 @@
       // 上拉加载
       bindscrolltolower () {
         if (this.OrderList.rows.length < this.OrderList.count) {
-          Toast.loading({ message: '加载中...', duration: 0  })
+          Toast.loading({ message: '加载中...', duration: 0 })
           const params = {
             page: this.Params.page + 1,
             size: this.Params.size

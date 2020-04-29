@@ -18,6 +18,8 @@ module.exports = {
     '__mpx_mode__': true
   },
   rules: {
-    'no-unused-vars': 0
+    'no-unused-vars': 0,
+    'indent': 0,
+    'no-undef': 0
   }
 }

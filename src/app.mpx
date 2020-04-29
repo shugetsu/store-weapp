@@ -27,7 +27,6 @@ mpx.xfetch.interceptors.response.use(function (response) {
   return response
 })
 
-
 // app.js
 App({
   ...tokenModel.mapActions(['GetToken']),
