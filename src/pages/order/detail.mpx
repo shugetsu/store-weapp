@@ -60,12 +60,8 @@
   import Dialog from '@vant/weapp/dist/dialog/dialog'
 
   createPage({
-    data: {
-
-    },
-    onLoad ({ id }) {
-      // Toast.loading({ message: '加载中...', duration: 0  })
-    },
+    data: {},
+    onLoad () {},
     computed: {
       ...orderModel.mapState(['OrderDetail'])
     },
