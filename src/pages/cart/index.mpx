@@ -176,7 +176,7 @@
   }
 
   .submit-bar {
-    bottom: 100px !important;
+    bottom: 50PX !important;
   }
 }
 </style>

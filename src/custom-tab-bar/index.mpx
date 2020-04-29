@@ -1,5 +1,5 @@
 <template>
-  <van-tabbar border="{{false}}" class="custom-tab-bar" active="{{selected}}" inactive-color="#989898" active-color="#AB956D" bind:change="tabbarChange">
+  <van-tabbar class="custom-tab-bar" active="{{selected}}" inactive-color="#989898" active-color="#AB956D" bind:change="tabbarChange">
     <van-tabbar-item wx:for="{{tabbar}}" wx:key="path" info="{{index === 2 ? CartProductList.length > 0 ? CartProductList.length : ''  : '' }}">
       <image slot="icon" src="{{item.iconPath}}" mode="aspectFit"/>
       <image slot="icon-active" src="{{item.selectedIconPath}}" mode="aspectFit"/>
@@ -57,8 +57,8 @@
 <style lang="less">
   .custom-tab-bar {
     image {
-      width: 50px;
-      height: 50px;
+      width: 36px;
+      height: 36px;
     }
   }
 </style>
