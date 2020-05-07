@@ -1,6 +1,10 @@
 # store-applet
 
-> A mpx project
+## 扫码体验
+![二维码][1]
+
+
+  [1]: https://www.yu-yin.xin:8001/resource/images/store-weapp.jpg
 
 ## Dev
 
